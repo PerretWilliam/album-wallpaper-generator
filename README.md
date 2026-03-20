@@ -1,21 +1,41 @@
-# React + TypeScript + Vite + shadcn/ui
+# Album Art Wallpaper Generator
 
-This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
+Frontend-only web app built with React + Vite.  
+Search iTunes for a song/album/artist, select a result, generate a 1920x1080
+wallpaper from the album art, preview it, and download it as PNG.
 
-## Adding components
+## Features
 
-To add components to your app, run the following command:
+- iTunes Search API integration with typed parsing
+- Artwork URL resolution with safe fallbacks (`1000x1000bb`, `600x600bb`, original)
+- Promise-based image loading helper with timeout + abort support
+- Device format presets (Desktop, Laptop, iPhone, Google Pixel, Android, Tablet)
+- Real-time blur strength setting with live preview update
+- Canvas-based wallpaper generation:
+  - blurred cropped background from artwork
+  - dark overlay + gradient
+  - centered cover with rounded corners and subtle shadow
+- Responsive UI with loading and error states
+- Download generated wallpaper as PNG
+
+## Run Locally
 
 ```bash
-npx shadcn@latest add button
+npm install
+npm run dev
 ```
 
-This will place the ui components in the `src/components` directory.
+Build and checks:
 
-## Using components
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
 
-To use the components in your app, import them as follows:
+Coverage report:
 
-```tsx
-import { Button } from "@/components/ui/button"
+```bash
+npm run test:coverage
 ```
