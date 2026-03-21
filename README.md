@@ -25,6 +25,7 @@ Search for any song, album, or artist via the iTunes API, select a result, and i
   - Centered cover art with rounded corners and subtle drop shadow
 - **Device format presets** — Desktop, Laptop, iPhone, Google Pixel, Android, Tablet
 - **Real-time blur control** — adjust blur strength with a live preview update
+- **Optional metadata overlay** — show or hide album title and artist under the cover
 - **Promise-based image loading** — timeout and abort support for resilient fetching
 - **One-click PNG download** of the generated wallpaper
 - Responsive UI with loading and error states
@@ -33,8 +34,8 @@ Search for any song, album, or artist via the iTunes API, select a result, and i
 
 ## Preview
 
-| Search | Result | Wallpaper |
-|--------|--------|-----------|
+| Search                  | Result                | Wallpaper               |
+| ----------------------- | --------------------- | ----------------------- |
 | Type an artist or album | Browse iTunes results | Download your wallpaper |
 
 ---
@@ -59,14 +60,14 @@ The app will be available at `http://localhost:5173`.
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start the development server |
-| `npm run build` | Build for production |
-| `npm run typecheck` | Run TypeScript type checking |
-| `npm run lint` | Lint the codebase with ESLint |
-| `npm run test` | Run the test suite with Vitest |
-| `npm run test:coverage` | Generate a coverage report |
+| Command                 | Description                    |
+| ----------------------- | ------------------------------ |
+| `npm run dev`           | Start the development server   |
+| `npm run build`         | Build for production           |
+| `npm run typecheck`     | Run TypeScript type checking   |
+| `npm run lint`          | Lint the codebase with ESLint  |
+| `npm run test`          | Run the test suite with Vitest |
+| `npm run test:coverage` | Generate a coverage report     |
 
 ---
 

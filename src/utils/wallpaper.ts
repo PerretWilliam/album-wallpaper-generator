@@ -6,6 +6,10 @@ export const DEFAULT_BLUR_STRENGTH = 55
 
 type GenerateWallpaperOptions = {
   blurStrength?: number
+  metadata?: {
+    title: string
+    artist: string
+  } | null
 }
 
 export function clampBlurStrength(value: number): number {
@@ -100,6 +104,75 @@ function drawRoundedRect(
   ctx.closePath()
 }
 
+function fitTextToWidth(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number
+): string {
+  const normalized = text.trim()
+  if (!normalized) {
+    return ""
+  }
+
+  if (ctx.measureText(normalized).width <= maxWidth) {
+    return normalized
+  }
+
+  let trimmed = normalized
+  while (trimmed.length > 1 && ctx.measureText(`${trimmed}…`).width > maxWidth) {
+    trimmed = trimmed.slice(0, -1)
+  }
+
+  return `${trimmed}…`
+}
+
+function drawArtworkMetadata(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  coverY: number,
+  coverSize: number,
+  metadata: { title: string; artist: string }
+) {
+  const titleText = metadata.title.trim()
+  const artistText = metadata.artist.trim()
+
+  if (!titleText && !artistText) {
+    return
+  }
+
+  const maxTextWidth = Math.max(220, Math.min(coverSize * 1.25, width * 0.86))
+  const centerX = Math.round(width / 2)
+  const titleY = coverY + coverSize + Math.round(height * 0.05)
+  const titleFontSize = Math.max(20, Math.round(height * 0.035))
+  const artistFontSize = Math.max(16, Math.round(height * 0.024))
+
+  ctx.save()
+  ctx.textAlign = "center"
+  ctx.textBaseline = "top"
+  ctx.shadowColor = "rgba(0, 0, 0, 0.65)"
+  ctx.shadowBlur = Math.round(height * 0.016)
+  ctx.fillStyle = "rgba(255, 255, 255, 0.96)"
+  ctx.font = `700 ${titleFontSize}px "Public Sans Variable", sans-serif`
+
+  const renderedTitle = fitTextToWidth(
+    ctx,
+    titleText || "Unknown title",
+    maxTextWidth
+  )
+  ctx.fillText(renderedTitle, centerX, titleY, maxTextWidth)
+
+  if (artistText) {
+    const artistY = titleY + titleFontSize + Math.round(height * 0.012)
+    ctx.fillStyle = "rgba(232, 236, 243, 0.92)"
+    ctx.font = `500 ${artistFontSize}px "Public Sans Variable", sans-serif`
+    const renderedArtist = fitTextToWidth(ctx, artistText, maxTextWidth)
+    ctx.fillText(renderedArtist, centerX, artistY, maxTextWidth)
+  }
+
+  ctx.restore()
+}
+
 export function generateWallpaper(
   image: CanvasImageSource,
   width = DEFAULT_WALLPAPER_WIDTH,
@@ -137,7 +210,8 @@ export function generateWallpaper(
 
   const coverSize = Math.round(Math.min(width, height) * 0.54)
   const coverX = Math.round((width - coverSize) / 2)
-  const coverY = Math.round((height - coverSize) / 2)
+  const metadataOffset = options.metadata ? Math.round(height * 0.055) : 0
+  const coverY = Math.round((height - coverSize) / 2) - Math.round(metadataOffset / 2)
   const radius = Math.round(coverSize * 0.06)
 
   ctx.save()
@@ -161,6 +235,17 @@ export function generateWallpaper(
   ctx.lineWidth = Math.max(2, Math.round(coverSize * 0.004))
   ctx.stroke()
   ctx.restore()
+
+  if (options.metadata) {
+    drawArtworkMetadata(
+      ctx,
+      width,
+      height,
+      coverY,
+      coverSize,
+      options.metadata
+    )
+  }
 
   return canvas
 }

@@ -87,6 +87,20 @@ function getGenerationErrorMessage(error: unknown): string {
   return "Wallpaper generation failed. Please try another artwork."
 }
 
+function buildWallpaperMetadata(
+  item: ItunesSearchItem,
+  shouldShowMetadata: boolean
+): { title: string; artist: string } | null {
+  if (!shouldShowMetadata) {
+    return null
+  }
+
+  return {
+    title: item.title,
+    artist: item.artist,
+  }
+}
+
 export function App() {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<ItunesSearchItem[]>([])
@@ -97,6 +111,7 @@ export function App() {
   const [isSearching, setIsSearching] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [blurStrength, setBlurStrength] = useState(DEFAULT_BLUR_STRENGTH)
+  const [showMetadata, setShowMetadata] = useState(false)
   const [wallpaperUrl, setWallpaperUrl] = useState<string | null>(null)
   const [artworkSourceUrl, setArtworkSourceUrl] = useState<string | null>(null)
   const [selectedPresetId, setSelectedPresetId] = useState(
@@ -109,6 +124,7 @@ export function App() {
   const cachedArtworkRef = useRef<CachedArtwork | null>(null)
   const selectedPresetRef = useRef<WallpaperPreset>(getDefaultWallpaperPreset())
   const blurStrengthRef = useRef(DEFAULT_BLUR_STRENGTH)
+  const showMetadataRef = useRef(true)
 
   const selectedItem = useMemo(
     () => results.find((item) => item.id === selectedId) ?? null,
@@ -127,6 +143,10 @@ export function App() {
   useEffect(() => {
     blurStrengthRef.current = blurStrength
   }, [blurStrength])
+
+  useEffect(() => {
+    showMetadataRef.current = showMetadata
+  }, [showMetadata])
 
   const resetWallpaper = useCallback(() => {
     setWallpaperUrl((currentUrl) => {
@@ -155,9 +175,17 @@ export function App() {
   )
 
   const regenerateFromCachedArtwork = useCallback(
-    async (preset: WallpaperPreset, nextBlurStrength: number) => {
+    async (
+      preset: WallpaperPreset,
+      nextBlurStrength: number,
+      nextShowMetadata: boolean
+    ) => {
       const cachedArtwork = cachedArtworkRef.current
-      if (!selectedItem || !cachedArtwork || cachedArtwork.itemId !== selectedItem.id) {
+      if (
+        !selectedItem ||
+        !cachedArtwork ||
+        cachedArtwork.itemId !== selectedItem.id
+      ) {
         return
       }
 
@@ -171,9 +199,15 @@ export function App() {
       setIsGenerating(true)
 
       try {
-        const canvas = generateWallpaper(cachedArtwork.image, preset.width, preset.height, {
-          blurStrength: nextBlurStrength,
-        })
+        const canvas = generateWallpaper(
+          cachedArtwork.image,
+          preset.width,
+          preset.height,
+          {
+            blurStrength: nextBlurStrength,
+            metadata: buildWallpaperMetadata(selectedItem, nextShowMetadata),
+          }
+        )
         const blob = await canvasToBlob(canvas, "image/png")
 
         if (generationTokenRef.current !== token) {
@@ -261,9 +295,16 @@ export function App() {
         )
         const activePreset = selectedPresetRef.current
         const activeBlurStrength = blurStrengthRef.current
-        const canvas = generateWallpaper(image, activePreset.width, activePreset.height, {
-          blurStrength: activeBlurStrength,
-        })
+        const activeShowMetadata = showMetadataRef.current
+        const canvas = generateWallpaper(
+          image,
+          activePreset.width,
+          activePreset.height,
+          {
+            blurStrength: activeBlurStrength,
+            metadata: buildWallpaperMetadata(item, activeShowMetadata),
+          }
+        )
         const blob = await canvasToBlob(canvas, "image/png")
 
         if (generationTokenRef.current !== token) {
@@ -314,7 +355,11 @@ export function App() {
       setSelectedPresetId(presetId)
 
       if (selectedItem) {
-        void regenerateFromCachedArtwork(nextPreset, blurStrengthRef.current)
+        void regenerateFromCachedArtwork(
+          nextPreset,
+          blurStrengthRef.current,
+          showMetadataRef.current
+        )
       }
     },
     [regenerateFromCachedArtwork, selectedItem]
@@ -327,7 +372,27 @@ export function App() {
       setBlurStrength(roundedBlurStrength)
 
       if (selectedItem) {
-        void regenerateFromCachedArtwork(selectedPresetRef.current, roundedBlurStrength)
+        void regenerateFromCachedArtwork(
+          selectedPresetRef.current,
+          roundedBlurStrength,
+          showMetadataRef.current
+        )
+      }
+    },
+    [regenerateFromCachedArtwork, selectedItem]
+  )
+
+  const handleShowMetadataChange = useCallback(
+    (nextShowMetadata: boolean) => {
+      showMetadataRef.current = nextShowMetadata
+      setShowMetadata(nextShowMetadata)
+
+      if (selectedItem) {
+        void regenerateFromCachedArtwork(
+          selectedPresetRef.current,
+          blurStrengthRef.current,
+          nextShowMetadata
+        )
       }
     },
     [regenerateFromCachedArtwork, selectedItem]
@@ -363,7 +428,7 @@ export function App() {
   }, [wallpaperUrl])
 
   return (
-    <div className="min-h-svh bg-[radial-gradient(circle_at_top,_rgba(223,238,255,0.9),_rgba(245,248,252,0.92)_42%,_rgba(255,255,255,1)_100%)] text-foreground">
+    <div className="min-h-svh bg-[radial-gradient(circle_at_top,rgba(223,238,255,0.9),rgba(245,248,252,0.92)_42%,rgba(255,255,255,1)_100%)] text-foreground">
       <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
         <header className="mb-6 space-y-2">
           <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -402,6 +467,8 @@ export function App() {
             onPresetChange={handlePresetChange}
             blurStrength={blurStrength}
             onBlurChange={handleBlurChange}
+            showMetadata={showMetadata}
+            onShowMetadataChange={handleShowMetadataChange}
             outputWidth={selectedPreset.width}
             outputHeight={selectedPreset.height}
             onDownload={handleDownload}

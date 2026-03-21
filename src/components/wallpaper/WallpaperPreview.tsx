@@ -5,6 +5,7 @@ import { LoadingIndicator } from "@/components/wallpaper/LoadingIndicator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import {
@@ -30,6 +31,8 @@ type WallpaperPreviewProps = {
   onPresetChange: (presetId: string) => void
   blurStrength: number
   onBlurChange: (blurStrength: number) => void
+  showMetadata: boolean
+  onShowMetadataChange: (checked: boolean) => void
   outputWidth: number
   outputHeight: number
   onDownload: () => void
@@ -46,13 +49,17 @@ export function WallpaperPreview({
   onPresetChange,
   blurStrength,
   onBlurChange,
+  showMetadata,
+  onShowMetadataChange,
   outputWidth,
   outputHeight,
   onDownload,
 }: WallpaperPreviewProps) {
   const canDownload = Boolean(previewUrl) && !isGenerating
   const outputLabel = formatWallpaperResolution(outputWidth, outputHeight)
-  const selectedPreset = presets.find((preset) => preset.id === selectedPresetId)
+  const selectedPreset = presets.find(
+    (preset) => preset.id === selectedPresetId
+  )
   const selectedPresetLabel = selectedPreset
     ? `${selectedPreset.name} (${selectedPreset.width}x${selectedPreset.height})`
     : null
@@ -74,7 +81,9 @@ export function WallpaperPreview({
           <CardTitle className="text-sm font-semibold text-foreground">
             Wallpaper Preview
           </CardTitle>
-          {isGenerating ? <LoadingIndicator label="Generating wallpaper..." /> : null}
+          {isGenerating ? (
+            <LoadingIndicator label="Generating wallpaper..." />
+          ) : null}
         </div>
       </CardHeader>
 
@@ -82,7 +91,7 @@ export function WallpaperPreview({
         <div className="grid gap-2">
           <Label
             htmlFor="wallpaper-preset"
-            className="text-xs font-medium uppercase tracking-wide text-muted-foreground"
+            className="text-xs font-medium tracking-wide text-muted-foreground uppercase"
           >
             Device format preset
           </Label>
@@ -119,7 +128,7 @@ export function WallpaperPreview({
 
         <div className="grid gap-2">
           <div className="flex items-center justify-between gap-3">
-            <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <Label className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               Blur Strength
             </Label>
             <span className="text-xs font-semibold text-foreground">
@@ -141,7 +150,25 @@ export function WallpaperPreview({
           />
         </div>
 
-        <div className="flex min-h-[260px] items-center justify-center overflow-hidden rounded-xl border border-border bg-muted/40 p-3">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              Show album metadata
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Display title and artist under the album cover
+            </p>
+          </div>
+          <Checkbox
+            checked={showMetadata}
+            onCheckedChange={(checked) =>
+              onShowMetadataChange(Boolean(checked))
+            }
+            aria-label="Show album metadata on wallpaper"
+          />
+        </div>
+
+        <div className="flex min-h-65 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted/40 p-3">
           {previewUrl ? (
             <img
               src={previewUrl}
@@ -150,7 +177,7 @@ export function WallpaperPreview({
                   ? `Wallpaper generated from ${selectedItem.title}`
                   : "Generated wallpaper preview"
               }
-              className="max-h-[65vh] h-auto w-auto max-w-full rounded-lg object-contain"
+              className="h-auto max-h-[65vh] w-auto max-w-full rounded-lg object-contain"
             />
           ) : (
             <div className="flex items-center justify-center px-6 py-10 text-center text-sm text-muted-foreground">
@@ -183,7 +210,9 @@ export function WallpaperPreview({
           >
             Download PNG
           </Button>
-          <span className="text-xs text-muted-foreground">Output: {outputLabel}</span>
+          <span className="text-xs text-muted-foreground">
+            Output: {outputLabel}
+          </span>
         </div>
       </CardContent>
     </Card>
