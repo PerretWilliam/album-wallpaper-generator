@@ -1,4 +1,4 @@
-# Album Art Wallpaper Generator
+# Hæze
 
 > Generate stunning 1920×1080 wallpapers from any album artwork — powered by the iTunes Search API.
 
