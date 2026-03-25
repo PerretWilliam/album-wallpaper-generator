@@ -1,11 +1,12 @@
-import type { ItunesSearchItem } from "@/types/itunes"
 import { MagnifyingGlassIcon, MusicNotesMinusIcon } from "@phosphor-icons/react"
 
 import { EmptyState } from "@/components/wallpaper/EmptyState"
+import { LoadingIndicator } from "@/components/wallpaper/LoadingIndicator"
 import { ResultCard } from "@/components/wallpaper/ResultCard"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LoadingIndicator } from "@/components/wallpaper/LoadingIndicator"
+import type { AppTranslations } from "@/i18n/translations"
+import type { ItunesSearchItem } from "@/types/itunes"
 
 type SearchResultsProps = {
   results: ItunesSearchItem[]
@@ -14,6 +15,7 @@ type SearchResultsProps = {
   hasSearched: boolean
   errorMessage: string | null
   onSelect: (item: ItunesSearchItem) => void
+  translations: AppTranslations
 }
 
 export function SearchResults({
@@ -23,15 +25,18 @@ export function SearchResults({
   hasSearched,
   errorMessage,
   onSelect,
+  translations,
 }: SearchResultsProps) {
   return (
     <Card className="rounded-2xl border border-border py-0">
       <CardHeader className="border-b border-border py-4">
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="text-sm font-semibold text-foreground">
-            Search Results
+            {translations.searchResultsTitle}
           </CardTitle>
-          {isLoading ? <LoadingIndicator label="Loading results..." /> : null}
+          {isLoading ? (
+            <LoadingIndicator label={translations.loadingResultsLabel} />
+          ) : null}
         </div>
       </CardHeader>
 
@@ -51,11 +56,15 @@ export function SearchResults({
                 <MagnifyingGlassIcon className="size-8" weight="duotone" />
               )
             }
-            title={hasSearched ? "No music found" : "Search for music"}
+            title={
+              hasSearched
+                ? translations.emptyNotFoundTitle
+                : translations.emptySearchTitle
+            }
             description={
               hasSearched
-                ? "No matching song, album, or artist was found. Try another keyword or a shorter query."
-                : "Type an artist, album, or song name to find artwork and generate a wallpaper."
+                ? translations.emptyNotFoundDescription
+                : translations.emptySearchDescription
             }
           />
         ) : null}
@@ -69,6 +78,7 @@ export function SearchResults({
                   isSelected={item.id === selectedId}
                   onSelect={onSelect}
                   disabled={isLoading}
+                  translations={translations}
                 />
               </li>
             ))}

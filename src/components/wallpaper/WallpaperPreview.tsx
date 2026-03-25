@@ -17,8 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { formatWallpaperResolution } from "@/utils/wallpaperPresets"
+import { type AppTranslations, translatePresetCategory } from "@/i18n/translations"
 import { MAX_BLUR_STRENGTH, MIN_BLUR_STRENGTH } from "@/utils/wallpaper"
+import { formatWallpaperResolution } from "@/utils/wallpaperPresets"
 
 type WallpaperPreviewProps = {
   selectedItem: ItunesSearchItem | null
@@ -36,6 +37,7 @@ type WallpaperPreviewProps = {
   outputWidth: number
   outputHeight: number
   onDownload: () => void
+  translations: AppTranslations
 }
 
 export function WallpaperPreview({
@@ -54,6 +56,7 @@ export function WallpaperPreview({
   outputWidth,
   outputHeight,
   onDownload,
+  translations,
 }: WallpaperPreviewProps) {
   const canDownload = Boolean(previewUrl) && !isGenerating
   const outputLabel = formatWallpaperResolution(outputWidth, outputHeight)
@@ -63,7 +66,6 @@ export function WallpaperPreview({
   const selectedPresetLabel = selectedPreset
     ? `${selectedPreset.name} (${selectedPreset.width}x${selectedPreset.height})`
     : null
-
   const presetsByCategory = presets.reduce<Record<string, WallpaperPreset[]>>(
     (groups, preset) => {
       const current = groups[preset.category] ?? []
@@ -79,10 +81,10 @@ export function WallpaperPreview({
       <CardHeader className="border-b border-border py-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="text-sm font-semibold text-foreground">
-            Wallpaper Preview
+            {translations.wallpaperPreviewTitle}
           </CardTitle>
           {isGenerating ? (
-            <LoadingIndicator label="Generating wallpaper..." />
+            <LoadingIndicator label={translations.generatingWallpaperLabel} />
           ) : null}
         </div>
       </CardHeader>
@@ -93,7 +95,7 @@ export function WallpaperPreview({
             htmlFor="wallpaper-preset"
             className="text-xs font-medium tracking-wide text-muted-foreground uppercase"
           >
-            Device format preset
+            {translations.presetLabel}
           </Label>
           <Select
             value={selectedPresetId}
@@ -107,14 +109,19 @@ export function WallpaperPreview({
               id="wallpaper-preset"
               className="h-10 w-full rounded-lg bg-card px-3 text-sm"
             >
-              <SelectValue placeholder="Select wallpaper format preset">
+              <SelectValue placeholder={translations.presetPlaceholder}>
                 {selectedPresetLabel}
               </SelectValue>
             </SelectTrigger>
             <SelectContent align="start">
               {Object.entries(presetsByCategory).map(([category, options]) => (
                 <SelectGroup key={category}>
-                  <SelectLabel>{category}</SelectLabel>
+                  <SelectLabel>
+                    {translatePresetCategory(
+                      category as WallpaperPreset["category"],
+                      translations
+                    )}
+                  </SelectLabel>
                   {options.map((preset) => (
                     <SelectItem key={preset.id} value={preset.id}>
                       {preset.name} ({preset.width}x{preset.height})
@@ -129,7 +136,7 @@ export function WallpaperPreview({
         <div className="grid gap-2">
           <div className="flex items-center justify-between gap-3">
             <Label className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Blur Strength
+              {translations.blurStrengthLabel}
             </Label>
             <span className="text-xs font-semibold text-foreground">
               {Math.round(blurStrength)}%
@@ -146,17 +153,17 @@ export function WallpaperPreview({
                 onBlurChange(nextValue)
               }
             }}
-            aria-label="Blur strength"
+            aria-label={translations.blurStrengthAriaLabel}
           />
         </div>
 
         <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2">
           <div>
             <p className="text-sm font-medium text-foreground">
-              Show album metadata
+              {translations.showMetadataLabel}
             </p>
             <p className="text-xs text-muted-foreground">
-              Display title and artist under the album cover
+              {translations.showMetadataDescription}
             </p>
           </div>
           <Checkbox
@@ -164,7 +171,7 @@ export function WallpaperPreview({
             onCheckedChange={(checked) =>
               onShowMetadataChange(Boolean(checked))
             }
-            aria-label="Show album metadata on wallpaper"
+            aria-label={translations.showMetadataAriaLabel}
           />
         </div>
 
@@ -174,16 +181,16 @@ export function WallpaperPreview({
               src={previewUrl}
               alt={
                 selectedItem
-                  ? `Wallpaper generated from ${selectedItem.title}`
-                  : "Generated wallpaper preview"
+                  ? translations.previewGeneratedFromAlt(selectedItem.title)
+                  : translations.previewGeneratedAltFallback
               }
               className="h-auto max-h-[65vh] w-auto max-w-full rounded-lg object-contain"
             />
           ) : (
             <div className="flex items-center justify-center px-6 py-10 text-center text-sm text-muted-foreground">
               {isGenerating
-                ? "Building preview..."
-                : `Select a result to generate a ${outputLabel} wallpaper.`}
+                ? translations.previewBuildingLabel
+                : translations.previewSelectPrompt(outputLabel)}
             </div>
           )}
         </div>
@@ -196,8 +203,11 @@ export function WallpaperPreview({
 
         {selectedItem ? (
           <p className="text-xs text-muted-foreground">
-            Source: {selectedItem.title} • {selectedItem.artist}
-            {artworkSourceUrl ? " • best artwork URL resolved" : ""}
+            {translations.sourceSummary(
+              selectedItem.title,
+              selectedItem.artist,
+              Boolean(artworkSourceUrl)
+            )}
           </p>
         ) : null}
 
@@ -208,10 +218,10 @@ export function WallpaperPreview({
             disabled={!canDownload}
             className="h-10 rounded-lg px-4 text-sm"
           >
-            Download PNG
+            {translations.downloadButtonLabel}
           </Button>
           <span className="text-xs text-muted-foreground">
-            Output: {outputLabel}
+            {translations.outputLabel}: {outputLabel}
           </span>
         </div>
       </CardContent>
