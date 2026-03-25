@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 import { SearchResults } from "@/components/wallpaper/SearchResults"
+import { getTranslations, resolveBrowserLocale } from "@/i18n/translations"
 import type { ItunesSearchItem } from "@/types/itunes"
 
 const sampleItem: ItunesSearchItem = {
@@ -13,8 +14,14 @@ const sampleItem: ItunesSearchItem = {
   artworkUrl100: "https://example.com/100x100bb.jpg",
 }
 
+function getTestTranslations() {
+  return getTranslations(resolveBrowserLocale())
+}
+
 describe("SearchResults", () => {
   it("shows onboarding empty state before first search", () => {
+    const translations = getTestTranslations()
+
     render(
       <SearchResults
         results={[]}
@@ -23,13 +30,16 @@ describe("SearchResults", () => {
         hasSearched={false}
         errorMessage={null}
         onSelect={vi.fn()}
+        translations={translations}
       />
     )
 
-    expect(screen.getByText("Search for music")).toBeInTheDocument()
+    expect(screen.getByText(translations.emptySearchTitle)).toBeInTheDocument()
   })
 
   it("shows not-found empty state after search with zero results", () => {
+    const translations = getTestTranslations()
+
     render(
       <SearchResults
         results={[]}
@@ -38,15 +48,17 @@ describe("SearchResults", () => {
         hasSearched
         errorMessage={null}
         onSelect={vi.fn()}
+        translations={translations}
       />
     )
 
-    expect(screen.getByText("No music found")).toBeInTheDocument()
+    expect(screen.getByText(translations.emptyNotFoundTitle)).toBeInTheDocument()
   })
 
   it("calls onSelect when a result card is clicked", async () => {
     const user = userEvent.setup()
     const onSelect = vi.fn()
+    const translations = getTestTranslations()
 
     render(
       <SearchResults
@@ -56,12 +68,13 @@ describe("SearchResults", () => {
         hasSearched
         errorMessage={null}
         onSelect={onSelect}
+        translations={translations}
       />
     )
 
     await user.click(
       screen.getByRole("button", {
-        name: /Generate wallpaper from Around the World by Daft Punk/i,
+        name: translations.resultAriaLabel(sampleItem.title, sampleItem.artist),
       })
     )
 
